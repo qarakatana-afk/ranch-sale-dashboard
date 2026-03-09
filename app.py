@@ -1,4 +1,5 @@
 import streamlit as st
+import seed
 from db import init_db, get_deal_snapshot, update_document, set_stage
 from rules import compute_status, STAGES
 
@@ -16,9 +17,17 @@ init_db()
 
 st.title("Ranch Sale Dashboard")
 
+top_left, top_right = st.columns([4, 1])
+with top_left:
+    st.caption("Decision-focused dashboard for governing a real-world ranch sale workflow.")
+with top_right:
+    if st.button("Reset Demo Data"):
+        seed.seed()
+        st.rerun()
+
 snapshot = get_deal_snapshot()
 if not snapshot["deal"]:
-    st.error("Deal not initialized. Run: python seed.py")
+    st.error("Deal data is not initialized yet. Click 'Reset Demo Data' to load the demo dataset.")
     st.stop()
 
 deal = snapshot["deal"]
@@ -120,7 +129,12 @@ with left:
 
     st.subheader("Deal Stage")
     stage_idx = STAGES.index(deal["current_stage"])
-    new_stage = st.selectbox("Current stage", STAGES, index=stage_idx, format_func=pretty_stage)
+    new_stage = st.selectbox(
+        "Current stage",
+        STAGES,
+        index=stage_idx,
+        format_func=pretty_stage,
+    )
 
     stage_note = st.text_input(
         "Stage change note (required if moving backwards)",
